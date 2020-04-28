@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "linux_parser.h"
 
@@ -67,10 +68,46 @@ vector<int> LinuxParser::Pids() {
 }
 
 // TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { return 0.0; }
+float LinuxParser::MemoryUtilization() { 
+  // used to parse the file
+  string line, key, value;
+  // to calculate utilizaiton we take available / total
+  float memTotal=0.0, memAvailable=0.0;
+  // open the file in /proc/memInfo
+  std::ifstream stream(kProcDirectory + kMeminfoFilename);
+  if (stream.is_open()) {
+    // get every line in the file
+    while(std::getline(stream, line)) {
+      std::istringstream linestream(line);
+      linestream >> key >> value;
+      // if we find memtotal then save the float value
+      if (key.find("MemTotal") != std::string::npos){
+        memTotal = stof(value);
+      }
+      // if we find memavailable then save the float value
+      else if (key.find("MemAvailable") != std::string::npos){
+        memAvailable = stof(value);
+      }
+    }
+  }
+  return (memAvailable / memTotal) * 100; 
+}
 
 // TODO: Read and return the system uptime
-long LinuxParser::UpTime() { return 0; }
+long LinuxParser::UpTime() { 
+    // used to parse the file
+  string line;
+  // to calculate utilizaiton we take available / total
+  float uptime=0.0, idleProcess=0.0;
+  // open the file in /proc/memInfo
+  std::ifstream stream(kProcDirectory + kUptimeFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    linestream >> uptime >> idleProcess;
+  }
+  return uptime;
+}
 
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
