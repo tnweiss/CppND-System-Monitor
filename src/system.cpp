@@ -23,7 +23,25 @@ float System::Cpu() {
 }
 
 // TODO: Return a container composed of the system's processes
-vector<Process>& System::Processes() { return processes_; }
+vector<Process>& System::Processes() {
+    vector<Process> processes{}; 
+    
+    for (int pid : LinuxParser::Pids()){
+        try {
+            Process process = Process(pid);
+            processes.push_back(Process(process));
+        } catch (const std::exception& e){
+            // ignore this
+        }
+    }
+
+    // sort processes
+    std::sort(std::begin(processes), std::end(processes)); 
+
+    processes_ = processes;
+
+    return processes_; 
+}
 
 // TODO: Return the system's kernel identifier (string)
 std::string System::Kernel() { return LinuxParser::Kernel(); }

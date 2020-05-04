@@ -4,9 +4,15 @@
 #include "system.h"
 #include "linux_parser.h"
 #include <unistd.h>
+#include "format.h"
 int main() {
   System system;
   NCursesDisplay::Display(system);
+
+  // for(auto process: system.Processes()) {
+  //   std::cout << process.CpuUtilization() << std::endl;
+  // }
+
   // // used for testing
   // std::cout << "\n\n\n**** LINUX_PARSER_TEST ****" << std::endl;
   // std::cout << "Memory Utilization: " << LinuxParser::MemoryUtilization() << std::endl;
@@ -25,4 +31,13 @@ int main() {
   // std::cout << "CPU util: " << system.Cpu() << std::endl;
   // usleep(2000000);
   // std::cout << "CPU util: " << system.Cpu() << std::endl;
+
+  // Process process(8060);
+  // std::cout << "\n\nPID: " << process.Pid() << std::endl;
+  // std::cout << "User: '" << process.User() << "'" << std::endl;
+  // std::cout << "Command: '" << process.Command() << "'" << std::endl;
+  // std::cout << "Cpu Util: '" << process.CpuUtilization() << "'" << std::endl;
+  // std::cout << "Ram: '" << process.Ram() << "'" << std::endl;
+  // std::cout << "Uptime: '" << Format::ElapsedTime(process.UpTime()) << "'" << std::endl;
+
 }

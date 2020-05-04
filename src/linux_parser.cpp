@@ -283,11 +283,59 @@ string LinuxParser::Uid(int pid) {
 
 // TODO: Read and return the user associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid[[maybe_unused]]) { return string(); }
+string LinuxParser::User(int pid) { 
+  // get the user id for the process
+  int userId = std::stoi(LinuxParser::Uid(pid));
+
+  // used to parse the file pulling one token off at a time
+  string line, username, password, info, homeDir, command, uid, gid;
+  // open the file in /proc/stat
+  std::ifstream stream(kPasswordPath);
+  if (stream.is_open()) {
+    // get the first line in the file
+    while(std::getline(stream, line)){
+      std::istringstream linestream(line);
+
+      // parse the line, use colon as the delimiter
+      std::string segment;
+      std::getline(linestream, username, ':');
+      std::getline(linestream, password, ':');
+      std::getline(linestream, uid, ':');
+      std::getline(linestream, gid, ':');
+      std::getline(linestream, homeDir, ':');
+      std::getline(linestream, command, ':');
+
+      // if the uid of the process equals the uid in /etc/passwd return the username
+      if (std::stoi(uid) == userId){
+        return username;
+      }
+    }
+  }
+
+  // return the default
+  return "N/A"; 
+}
 
 // TODO: Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid[[maybe_unused]]) { return 0; }
+long LinuxParser::UpTime(int pid) { 
+  string line, key, value;
+  long procUptime{0};
+
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    // skip the first 22 tokens
+    for(int i = 1; i <= 22; i++){
+      linestream >> value;
+    }
+    // calculate the start time of the process (since system startup)
+    procUptime = std::stol(value) / sysconf(_SC_CLK_TCK);
+  }
+  // subtract the amount of time the system has been up from the amount of time the process has been up
+  return LinuxParser::UpTime() - procUptime;
+}
 
 // TODO: Read and return CPU utilization
 Processor LinuxParser::CpuUtilization() { 
@@ -308,4 +356,34 @@ Processor LinuxParser::CpuUtilization() {
     return Processor(user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice);
   }
   return Processor(); 
+}
+
+// TODO: Read and return CPU utilization
+float LinuxParser::CpuUtilization(int pid) { 
+  // help from https://stackoverflow.com/questions/16726779/how-do-i-get-the-total-cpu-usage-of-an-application-from-proc-pid-stat/16736599#16736599
+  long uptime = LinuxParser::UpTime();
+
+  // used to parse the file
+  string line, ignore;
+  // to calculate total jiffies
+  long utime, stime, cutime, cstime, starttime;
+  // open the file in /proc/stat
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
+  if (stream.is_open()) {
+    // get the first line in the file
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    // ignore first 13 values
+    for (unsigned i=0; i<13; i++) linestream >> ignore;
+    // read in all the values
+    linestream >> utime >> stime >> cutime >> cstime >> starttime;
+
+    float total_time = utime + stime + cutime + cstime;
+    float seconds = uptime - (starttime / sysconf(_SC_CLK_TCK));
+    float cpu_usage = ((total_time / sysconf(_SC_CLK_TCK)) / seconds);
+
+    // sum up all the values
+    return cpu_usage;
+  }
+  return 0.0; 
 }
