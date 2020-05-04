@@ -3,7 +3,7 @@
 #include "ncurses_display.h"
 #include "system.h"
 #include "linux_parser.h"
-
+#include <unistd.h>
 int main() {
   System system;
   NCursesDisplay::Display(system);
@@ -20,4 +20,9 @@ int main() {
   // std::cout << "Command for proc: " << LinuxParser::Command(1) << std::endl;
   // std::cout << "Ram for proc: " << LinuxParser::Ram(1) << std::endl;
   // std::cout << "UID for proc: " << LinuxParser::Uid(1) << std::endl;
+  // std::cout << "CPU util: " << system.Cpu() << std::endl;
+  // usleep(2000000);
+  // std::cout << "CPU util: " << system.Cpu() << std::endl;
+  // usleep(2000000);
+  // std::cout << "CPU util: " << system.Cpu() << std::endl;
 }

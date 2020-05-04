@@ -15,7 +15,12 @@ using std::string;
 using std::vector;
 
 // TODO: Return the system's CPU
-Processor& System::Cpu() { return cpu_; }
+float System::Cpu() { 
+    Processor newCpu = LinuxParser::CpuUtilization();
+    float cpuUtil = newCpu.Utilization(this->cpu);
+    this->cpu = newCpu;
+    return cpuUtil;
+}
 
 // TODO: Return a container composed of the system's processes
 vector<Process>& System::Processes() { return processes_; }

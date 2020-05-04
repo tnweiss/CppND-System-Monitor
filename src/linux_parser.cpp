@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "linux_parser.h"
+#include "processor.h"
 
 using std::stof;
 using std::string;
@@ -289,4 +290,22 @@ string LinuxParser::User(int pid[[maybe_unused]]) { return string(); }
 long LinuxParser::UpTime(int pid[[maybe_unused]]) { return 0; }
 
 // TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
+Processor LinuxParser::CpuUtilization() { 
+  // help from https://knowledge.udacity.com/questions/129844
+  // used to parse the file
+  string line, key;
+  // to calculate total jiffies
+  long user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
+  // open the file in /proc/stat
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  if (stream.is_open()) {
+    // get the first line in the file
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    // read in all the values
+    linestream >> key >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
+    // sum up all the values
+    return Processor(user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice);
+  }
+  return Processor(); 
+}
